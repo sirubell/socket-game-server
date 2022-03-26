@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
-class Server
+class Server//123456
 {
     public static void Main()
     {
@@ -43,7 +43,7 @@ abstract public class Block
         h = _h;
     }
     abstract override public string ToString();
-}
+}//123
 
  public class PlayerBlock : Block
 {
