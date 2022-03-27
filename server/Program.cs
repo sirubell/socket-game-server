@@ -28,7 +28,7 @@ class Server
 
                     NextTick();
 
-                    Console.WriteLine(GetEnvironmentString());
+                    // Console.WriteLine(GetEnvironmentString());
                 }
 
             }
@@ -97,16 +97,16 @@ class Server
                 {
 
                     string msg = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    // Console.WriteLine($"Receive {msg} from client: {info}");
+                    Console.WriteLine($"Receive {msg} from client: {info}");
 
                     PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
                     player.ChangeDirection(msg);
 
-                    msg = name + "\n" + msg;
+                    msg = name + "\n" + GetEnvironmentString();
                     // msg = msg.ToUpper();
 
                     stream.Write(Encoding.ASCII.GetBytes(msg), 0, bytesRead);
-                    // Console.WriteLine($"Send {msg} to client: {info}");
+                    Console.WriteLine($"Send {msg} to client: {info}");
                 }
 
                 stream.Flush();
@@ -284,10 +284,10 @@ public enum Direction
     {
         if (DetectCollision(pb))
         {
-            if (x < pb.x && x + w > pb.x) x = pb.x - w;
-            if (x > pb.x && x < pb.x + pb.w) x = pb.x + w;
             if (y < pb.y && y + h > pb.y) y = pb.y - h;
             if (y > pb.y && y < pb.y + pb.h) y = pb.y - h;
+            if (x < pb.x && x + w > pb.x) x = pb.x - w;
+            if (x > pb.x && x < pb.x + pb.w) x = pb.x + w;
         }
         if (pb.type == PlatformType.Spike && IsOn(pb))
         {
