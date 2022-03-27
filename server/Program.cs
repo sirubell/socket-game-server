@@ -6,31 +6,39 @@ class Server
 {
     static public List<PlayerBlock> pbs = new List<PlayerBlock>();
     static public List<PlatformBlock> pfs = new List<PlatformBlock>();
-    static public int tick;
+    static long ms;
+    public const long tick = 5;
+    static bool gameStart;
+    static string winner = String.Empty;
     public static void Main()
     {
-        Renew();
-        pbs.Add(new PlayerBlock(0, 0, 10, 10, "test1"));
-        pbs.Add(new PlayerBlock(10, 10, 10, 10, "test2"));
-        pfs.Add(new PlatformBlock(0, 100, 100, 100, PlatformType.Norm));
-
         StartServer();
-
-        long prevTime = GetCurrentTimeMS();
 
         while (true)
         {
-            long currentTime = GetCurrentTimeMS();
-            if (currentTime >= prevTime + 5)
+            Renew();
+
+            long prevTime = GetCurrentTimeMS();
+
+            while (true)
             {
-                prevTime = currentTime;
+                long currentTime = GetCurrentTimeMS();
+                if (currentTime >= prevTime + tick)
+                {
+                    prevTime = currentTime;
 
-                NextTick();
+                    NextTick();
 
-                Console.WriteLine(GetEnvironmentString());
+                    Console.WriteLine(GetEnvironmentString());
+                }
+
             }
-            
         }
+        
+
+        
+
+        
     }
 
     public static Thread StartServer()
@@ -129,23 +137,45 @@ class Server
 
     static public void Renew()
     {
-        pbs.Clear();
+        foreach (PlayerBlock pb in pbs)
+        {
+            pb.Revive();
+        }
         pfs.Clear();
-        tick = 0;
+        pfs.Add(new PlatformBlock(200, 700, 200, 10, PlatformType.Norm));
+        ms = 0;
+        gameStart = false;
     }
     static public string GetEnvironmentString()
     {
         string result = String.Empty;
         result += String.Join('|', pbs) + '\n';
         result += String.Join('|', pfs) + '\n';
-        result += Convert.ToString(tick * 5);
+        result += Convert.ToString(ms) + '\n';
+
+        if (!gameStart)
+        {
+            result += "Game Start in " + Convert.ToString((10000 - ms) / 1000) + '\n';
+        }
+        if (winner != String.Empty)
+        {
+            result += "Winner: " + winner;
+        }
 
         return result;
     }
 
     static public void NextTick()
     {
-        tick++;
+        if (pbs.Count == 0) return;
+
+        ms += tick;
+        if (!gameStart && ms > 10000)
+        {
+            gameStart = true;
+            ms = 0;
+            winner = String.Empty;
+        }
 
         foreach (PlatformBlock pf in pfs)
         {
@@ -161,9 +191,14 @@ class Server
                 pb.CalulateRelation(pf);
             }
         }
+        int playerCount = pbs.Count(pb => { return pb.heart > 0; });
+        if (gameStart && playerCount == 1)
+        {
+            winner = pbs.Find(pb => { return pb.heart > 0; }).name;
+        }
 
-        // tick == 5ms, so tick * 200 == 1sec
-        if (pfs.Count < 5 && tick % 200 == 0)
+
+        if (gameStart && pfs.Count < 5 && ms % 1000 == 0)
         {
             pfs.Add(GeneratePlatform());
         }
@@ -230,7 +265,7 @@ public enum Direction
 
  public class PlayerBlock : Block
 {
-    int heart;
+    public int heart;
     public string name;
     public Direction dir;
     public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h)
@@ -271,6 +306,11 @@ public enum Direction
         if (dir == Direction.Left) x -= 0.1;
         if (dir == Direction.Right) x += 0.1;
         y += 0.1;
+    }
+
+    public void Revive()
+    {
+        heart = 100;
     }
 }
 
