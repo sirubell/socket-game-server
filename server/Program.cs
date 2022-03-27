@@ -158,7 +158,7 @@ class Server
             pb.NextPosition();
             foreach (PlatformBlock pf in pfs)
             {
-                pb.adjustPosition(pf);
+                pb.CalulateRelation(pf);
             }
         }
 
@@ -211,6 +211,14 @@ abstract public class Block
         }
         return false;
     }
+    public bool IsOn(Block b)
+    {
+        if (!(x + w < b.x || x > b.x + b.w) && y + h == b.y)
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 public enum Direction
@@ -244,7 +252,7 @@ public enum Direction
         return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), heart, name);
     }
 
-    public void adjustPosition(PlatformBlock pb)
+    public void CalulateRelation(PlatformBlock pb)
     {
         if (DetectCollision(pb))
         {
@@ -252,6 +260,10 @@ public enum Direction
             if (x > pb.x && x < pb.x + pb.w) x = pb.x + w;
             if (y < pb.y && y + h > pb.y) y = pb.y - h;
             if (y > pb.y && y < pb.y + pb.h) y = pb.y - h;
+        }
+        if (pb.type == PlatformType.Spike && IsOn(pb))
+        {
+            heart -= 1;
         }
     }
     override public void NextPosition()
@@ -270,7 +282,7 @@ public enum PlatformType
 
 public class PlatformBlock : Block
 {
-    PlatformType type = PlatformType.Norm;
+    public PlatformType type = PlatformType.Norm;
     public PlatformBlock(double _x, double _y, double _w, double _h, PlatformType _type) : base(_x, _y, _w, _h)
     {
         type = _type;
