@@ -173,12 +173,6 @@ class Server
             winner = String.Empty;
         }
 
-        foreach (PlatformBlock pf in pfs)
-        {
-            pf.NextPosition();
-        }
-        pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
-
         foreach (PlayerBlock pb in pbs)
         {
             pb.NextPosition();
@@ -187,6 +181,14 @@ class Server
                 pb.CalulateRelation(pf);
             }
         }
+
+        foreach (PlatformBlock pf in pfs)
+        {
+            pf.NextPosition();
+        }
+        pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
+
+        
         int playerCount = pbs.Count(pb => { return pb.heart > 0; });
         if (gameStart && playerCount == 1)
         {
@@ -285,7 +287,7 @@ public enum Direction
 
     public void CalulateRelation(PlatformBlock pb)
     {
-        if (DetectCollision(pb) && y < pb.y && y + h > pb.y) y = pb.y - h;
+        if (DetectCollision(pb) && y < pb.y && y + h > pb.y && y + h < pb.y + pb.h) y = pb.y - h;
         if (DetectCollision(pb) && y > pb.y && y < pb.y + pb.h) y = pb.y + pb.h;
         if (DetectCollision(pb) && x < pb.x && x + w > pb.x) x = pb.x - w;
         if (DetectCollision(pb) && x > pb.x && x < pb.x + pb.w) x = pb.x + pb.w;
@@ -299,7 +301,9 @@ public enum Direction
     {
         if (dir == Direction.Left) x -= 0.1;
         if (dir == Direction.Right) x += 0.1;
+
         y += 0.1;
+        if (y + h >= 900) heart = 0;
     }
 
     public void Revive()
