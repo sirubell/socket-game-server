@@ -285,13 +285,11 @@ public enum Direction
 
     public void CalulateRelation(PlatformBlock pb)
     {
-        if (DetectCollision(pb))
-        {
-            if (y < pb.y && y + h > pb.y) y = pb.y - h;
-            if (y > pb.y && y < pb.y + pb.h) y = pb.y - h;
-            if (x < pb.x && x + w > pb.x) x = pb.x - w;
-            if (x > pb.x && x < pb.x + pb.w) x = pb.x + w;
-        }
+        if (DetectCollision(pb) && y < pb.y && y + h > pb.y) y = pb.y - h;
+        if (DetectCollision(pb) && y > pb.y && y < pb.y + pb.h) y = pb.y + pb.h;
+        if (DetectCollision(pb) && x < pb.x && x + w > pb.x) x = pb.x - w;
+        if (DetectCollision(pb) && x > pb.x && x < pb.x + pb.w) x = pb.x + pb.w;
+
         if (pb.type == PlatformType.Spike && IsOn(pb))
         {
             heart -= 1;
