@@ -322,7 +322,7 @@ public class PlatformBlock : Block
     }
     override public string ToString()
     {
-        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type);
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type + 1);
     }
 
     override public void NextPosition()
