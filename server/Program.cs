@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
 class Server
@@ -34,11 +33,6 @@ class Server
 
             }
         }
-        
-
-        
-
-        
     }
 
     public static Thread StartServer()
@@ -65,7 +59,6 @@ class Server
                 TcpClient client = server.AcceptTcpClient();
 
                 StartClientThread(client, "Player " + Convert.ToString(counter));
-                Console.WriteLine($"Current threads count: {Process.GetCurrentProcess().Threads.Count}");
             }
         }
         catch (Exception ex)
