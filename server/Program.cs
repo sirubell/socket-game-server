@@ -93,7 +93,7 @@ abstract public class Block
     public double w;
     public double h;
 
-    public Block(float _x, float _y, float _w, float _h)
+    public Block(double _x, double _y, double _w, double _h)
     {
         x = _x;
         y = _y;
@@ -123,7 +123,7 @@ public enum CurrentDirection
 {
     int heart;
     CurrentDirection dir;
-    public PlayerBlock(float _x, float _y, float _w, int _h) : base(_x, _y, _w, _h)
+    public PlayerBlock(double _x, double _y, double _w, int _h) : base(_x, _y, _w, _h)
     {
         heart = 100;
         dir = CurrentDirection.None;
@@ -161,7 +161,7 @@ public enum PlatformType
 public class PlatformBlock : Block
 {
     PlatformType type = PlatformType.Norm;
-    public PlatformBlock(float _x, float _y, float _w, float _h, PlatformType _type) : base(_x, _y, _w, _h)
+    public PlatformBlock(double _x, double _y, double _w, double _h, PlatformType _type) : base(_x, _y, _w, _h)
     {
         type = _type;
     }
