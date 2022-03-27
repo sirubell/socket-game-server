@@ -91,12 +91,13 @@ class Server
             while (client.Connected)
             {
                 NetworkStream stream = client.GetStream();
-                byte[] buffer = new byte[2048];
+                byte[] bufferRead = new byte[2048];
+                byte[] bufferSend = new byte[2048];
                 int bytesRead;
-                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                while ((bytesRead = stream.Read(bufferRead, 0, bufferRead.Length)) > 0)
                 {
 
-                    string msg = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    string msg = Encoding.ASCII.GetString(bufferRead, 0, bytesRead);
                     Console.WriteLine($"Receive {msg} from client: {info}");
 
                     PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
@@ -105,7 +106,9 @@ class Server
                     msg = name + "\n" + GetEnvironmentString();
                     // msg = msg.ToUpper();
 
-                    stream.Write(Encoding.ASCII.GetBytes(msg), 0, bytesRead);
+                    bufferSend = Encoding.ASCII.GetBytes(msg);
+
+                    stream.Write(bufferSend, 0, bufferSend.Length);
                     Console.WriteLine($"Send {msg} to client: {info}");
                 }
 
