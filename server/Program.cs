@@ -97,7 +97,7 @@ class Server
                 {
 
                     string msg = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    Console.WriteLine($"Receive {msg} from client: {info}");
+                    // Console.WriteLine($"Receive {msg} from client: {info}");
 
                     PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
                     player.ChangeDirection(msg);
@@ -106,7 +106,7 @@ class Server
                     // msg = msg.ToUpper();
 
                     stream.Write(Encoding.ASCII.GetBytes(msg), 0, bytesRead);
-                    Console.WriteLine($"Send {msg} to client: {info}");
+                    // Console.WriteLine($"Send {msg} to client: {info}");
                 }
 
                 stream.Flush();
