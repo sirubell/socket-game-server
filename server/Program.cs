@@ -1,4 +1,8 @@
-﻿class Server
+﻿using System.Diagnostics;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+class Server
 {
     static public List<PlayerBlock> pbs = new List<PlayerBlock>();
     static public List<PlatformBlock> pfs = new List<PlatformBlock>();
@@ -6,11 +10,12 @@
     public static void Main()
     {
         Renew();
-        pbs.Add(new PlayerBlock(0, 0, 10, 10));
-        pbs.Add(new PlayerBlock(10, 10, 10, 10));
+        pbs.Add(new PlayerBlock(0, 0, 10, 10, "test1"));
+        pbs.Add(new PlayerBlock(10, 10, 10, 10, "test2"));
         pfs.Add(new PlatformBlock(0, 100, 100, 100, PlatformType.Norm));
 
-        Console.WriteLine(GetEnvironmentString());
+        StartServer();
+
         long prevTime = GetCurrentTimeMS();
 
         while (true)
@@ -27,6 +32,101 @@
             
         }
     }
+
+    public static Thread StartServer()
+    {
+        Thread t = new Thread(() => StartServerThread());
+        t.Start();
+        return t;
+    }
+
+    public static void StartServerThread()
+    {
+        Int32 port = 12345;
+        int counter = 0;
+        IPAddress localAddr = IPAddress.Parse("127.0.0.1");
+        TcpListener server = new TcpListener(localAddr, port);
+        server.Start();
+        Console.WriteLine("Server start!");
+
+        try
+        {
+            while (true)
+            {
+                counter += 1;
+                TcpClient client = server.AcceptTcpClient();
+
+                StartClientThread(client, "Player " + Convert.ToString(counter));
+                Console.WriteLine($"Current threads count: {Process.GetCurrentProcess().Threads.Count}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
+        finally
+        {
+            server.Stop();
+        }
+    }
+
+    static public Thread StartClientThread(TcpClient client, string name)
+    {
+        Thread t = new Thread(() => KeepListening(client, name));
+        t.Start();
+        return t;
+    }
+
+    private static void KeepListening(TcpClient client, string name)
+    {
+        string clientIp = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+        string info = $"IP: {clientIp}, name: {name}";
+        Console.WriteLine($"Client connected with {info}");
+
+        pbs.Add(new PlayerBlock(300, 100, 50, 50, name));
+
+        try
+        {
+            while (client.Connected)
+            {
+                NetworkStream stream = client.GetStream();
+                byte[] buffer = new byte[2048];
+                int bytesRead;
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+
+                    string msg = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    Console.WriteLine($"Receive {msg} from client: {info}");
+
+                    PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
+                    player.ChangeDirection(msg);
+
+                    msg = name + "\n" + msg;
+                    // msg = msg.ToUpper();
+
+                    stream.Write(Encoding.ASCII.GetBytes(msg), 0, bytesRead);
+                    Console.WriteLine($"Send {msg} to client: {info}");
+                }
+
+                stream.Flush();
+                stream.Close();
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+        finally
+        {
+            client.Close();
+
+            pbs.RemoveAll((PlayerBlock pb) => { return pb.name == name; });
+
+            Console.WriteLine($"Client disconnected with {info}");
+        }
+    }
+
     static public void Renew()
     {
         pbs.Clear();
@@ -36,8 +136,9 @@
     static public string GetEnvironmentString()
     {
         string result = String.Empty;
-        result += String.Join(',', pbs) + '\n';
-        result += String.Join(',', pfs) + '\n';
+        result += String.Join('|', pbs) + '\n';
+        result += String.Join('|', pfs) + '\n';
+        result += Convert.ToString(tick * 5);
 
         return result;
     }
@@ -112,7 +213,7 @@ abstract public class Block
     }
 }
 
-public enum CurrentDirection
+public enum Direction
 {
     None,
     Left,
@@ -122,16 +223,25 @@ public enum CurrentDirection
  public class PlayerBlock : Block
 {
     int heart;
-    CurrentDirection dir;
-    public PlayerBlock(double _x, double _y, double _w, int _h) : base(_x, _y, _w, _h)
+    public string name;
+    public Direction dir;
+    public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h)
     {
         heart = 100;
-        dir = CurrentDirection.None;
+        name = _name;
+        dir = Direction.None;
     }
-    
+
+    public void ChangeDirection(string msg)
+    {
+        if (msg == "1") dir = Direction.None;
+        if (msg == "2") dir = Direction.Left;
+        if (msg == "3") dir = Direction.Right;
+    }
+
     override public string ToString()
     {
-        return '[' + String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), heart) + ']';
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), heart, name);
     }
 
     public void adjustPosition(PlatformBlock pb)
@@ -146,8 +256,8 @@ public enum CurrentDirection
     }
     override public void NextPosition()
     {
-        if (dir == CurrentDirection.Left) x -= 0.1;
-        if (dir == CurrentDirection.Right) x += 0.1;
+        if (dir == Direction.Left) x -= 0.1;
+        if (dir == Direction.Right) x += 0.1;
         y += 0.1;
     }
 }
@@ -167,7 +277,7 @@ public class PlatformBlock : Block
     }
     override public string ToString()
     {
-        return '[' + String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type) + ']';
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type);
     }
 
     override public void NextPosition()
