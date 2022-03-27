@@ -1,45 +1,99 @@
-﻿using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-
-/// <summary>
-/// 
-/// </summary>
-
-class Server
+﻿class Server
 {
+    static public List<PlayerBlock> pbs = new List<PlayerBlock>();
+    static public List<PlatformBlock> pfs = new List<PlatformBlock>();
+    static public int tick;
     public static void Main()
     {
-        GameState.Renew();
-        GameState.pbs.Add(new PlayerBlock(0, 0, 10, 10));
-        GameState.pbs.Add(new PlayerBlock(10, 10, 10, 10));
-        GameState.pfs.Add(new PlatformBlock(0, 100, 100, 100, PlatformType.Norm));
+        Renew();
+        pbs.Add(new PlayerBlock(0, 0, 10, 10));
+        pbs.Add(new PlayerBlock(10, 10, 10, 10));
+        pfs.Add(new PlatformBlock(0, 100, 100, 100, PlatformType.Norm));
 
-        Console.WriteLine(GameState.GetEnvironmentString());
+        Console.WriteLine(GetEnvironmentString());
+        long prevTime = GetCurrentTimeMS();
 
-        while (!GameState.isEnd())
+        while (true)
         {
-            if (GameState.GetCurrentTimeMS() > GameState.prev_update_time + 5)
+            long currentTime = GetCurrentTimeMS();
+            if (currentTime >= prevTime + 5)
             {
-                GameState.nextTick();
-                
+                prevTime = currentTime;
 
-                Console.WriteLine(GameState.GetEnvironmentString());
+                NextTick();
+
+                Console.WriteLine(GetEnvironmentString());
             }
             
         }
+    }
+    static public void Renew()
+    {
+        pbs.Clear();
+        pfs.Clear();
+        tick = 0;
+    }
+    static public string GetEnvironmentString()
+    {
+        string result = String.Empty;
+        result += String.Join(',', pbs) + '\n';
+        result += String.Join(',', pfs) + '\n';
+
+        return result;
+    }
+
+    static public void NextTick()
+    {
+        tick++;
+
+        foreach (PlatformBlock pf in pfs)
+        {
+            pf.NextPosition();
+        }
+        pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
+
+        foreach (PlayerBlock pb in pbs)
+        {
+            pb.NextPosition();
+            foreach (PlatformBlock pf in pfs)
+            {
+                pb.adjustPosition(pf);
+            }
+        }
+
+        // tick == 5ms, so tick * 200 == 1sec
+        if (pfs.Count < 5 && tick % 200 == 0)
+        {
+            pfs.Add(GeneratePlatform());
+        }
+    }
+    public static PlatformBlock GeneratePlatform()
+    {
+        var rand = new Random();
+        int x = rand.Next(100, 600);
+        int y = 1000;
+        int w = rand.Next(100, 200);
+        int h = 10;
+
+        Array types = Enum.GetValues(typeof(PlatformType));
+        PlatformType randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
+
+        return new PlatformBlock(x, y, w, h, randomType);
+    }
+    static public long GetCurrentTimeMS()
+    {
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
     }
 }
 
 abstract public class Block
 {
-    public int x;
-    public int y;
-    public int w;
-    public int h;
+    public double x;
+    public double y;
+    public double w;
+    public double h;
 
-    public Block(int _x, int _y, int _w, int _h)
+    public Block(float _x, float _y, float _w, float _h)
     {
         x = _x;
         y = _y;
@@ -47,40 +101,54 @@ abstract public class Block
         h = _h;
     }
     abstract override public string ToString();
-}//123
+    abstract public void NextPosition();
+    public bool DetectCollision(Block b)
+    {
+        if (x + w > b.x && x < b.x + b.w && y + h > b.y && y < b.y + b.h)
+        {
+            return true;
+        }
+        return false;
+    }
+}
+
+public enum CurrentDirection
+{
+    None,
+    Left,
+    Right,
+}
 
  public class PlayerBlock : Block
 {
     int heart;
-    public PlayerBlock(int _x, int _y, int _w, int _h) : base(_x, _y, _w, _h)
+    CurrentDirection dir;
+    public PlayerBlock(float _x, float _y, float _w, int _h) : base(_x, _y, _w, _h)
     {
         heart = 100;
+        dir = CurrentDirection.None;
     }
     
     override public string ToString()
     {
-        return '[' + String.Join(',', x, y, w, h, heart) + ']';
-    }
-
-    public void down()
-    {
-        y += 1;
+        return '[' + String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), heart) + ']';
     }
 
     public void adjustPosition(PlatformBlock pb)
     {
-        if (y + h > pb.y)
+        if (DetectCollision(pb))
         {
-            y = pb.y - h;
+            if (x < pb.x && x + w > pb.x) x = pb.x - w;
+            if (x > pb.x && x < pb.x + pb.w) x = pb.x + w;
+            if (y < pb.y && y + h > pb.y) y = pb.y - h;
+            if (y > pb.y && y < pb.y + pb.h) y = pb.y - h;
         }
-        if (x + w > pb.x)
-        {
-            x = pb.x - w;
-        }
-        if (x < pb.x + w)
-        {
-            x = pb.x + w;
-        }
+    }
+    override public void NextPosition()
+    {
+        if (dir == CurrentDirection.Left) x -= 0.1;
+        if (dir == CurrentDirection.Right) x += 0.1;
+        y += 0.1;
     }
 }
 
@@ -93,94 +161,17 @@ public enum PlatformType
 public class PlatformBlock : Block
 {
     PlatformType type = PlatformType.Norm;
-    public PlatformBlock(int _x, int _y, int _w, int _h, PlatformType _type) : base(_x, _y, _w, _h)
+    public PlatformBlock(float _x, float _y, float _w, float _h, PlatformType _type) : base(_x, _y, _w, _h)
     {
         type = _type;
     }
     override public string ToString()
     {
-        return '[' + String.Join(',', x, y, w, h, type) + ']';
+        return '[' + String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type) + ']';
     }
 
-    public void up()
+    override public void NextPosition()
     {
-        y -= 1;
-    }
-}
-
-static public class GameState
-{
-    static public List<PlayerBlock> pbs = new List<PlayerBlock>();
-    static public List<PlatformBlock> pfs = new List<PlatformBlock>();
-    static public long prev_update_time;
-    static public long prev_update_platform_time;
-
-    static public void Renew()
-    {
-        pbs.Clear();
-        pfs.Clear();
-        prev_update_time = GetCurrentTimeMS();
-        prev_update_platform_time = GetCurrentTimeMS();
-    }
-
-    static public string GetEnvironmentString()
-    {
-        string result = String.Empty;
-        result += String.Join(',', pbs) + '\n';
-        result += String.Join(',', pfs) + '\n';
-
-        return result;
-    }
-
-    static public long GetCurrentTimeMS()
-    {
-        return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-    }
-
-    static public bool isEnd()
-    {
-        return false;
-    }
-
-    static public void nextTick()
-    {
-        long current_time = GetCurrentTimeMS();
-        prev_update_time = current_time;
-
-        foreach (PlatformBlock pf in GameState.pfs)
-        {
-            pf.up();
-        }
-        GameState.pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
-        // remove pf if y < 0
-
-        foreach (PlayerBlock pb in GameState.pbs)
-        {
-            pb.down();
-            foreach (PlatformBlock pf in GameState.pfs)
-            {
-                pb.adjustPosition(pf);
-            }
-        }
-
-        if (current_time > prev_update_platform_time + 1000 && pfs.Count < 5)
-        {
-            prev_update_platform_time = current_time;
-            pfs.Add(GeneratePlatform());
-        }
-    }
-
-    public static PlatformBlock GeneratePlatform()
-    {
-        var rand = new Random();
-        int x = rand.Next(100, 600);
-        int y = 1000;
-        int w = rand.Next(100, 200);
-        int h = 10;
-
-        Array types = Enum.GetValues(typeof(PlatformType));
-        PlatformType randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
-
-        return new PlatformBlock(x, y, w, h, randomType); 
+        y -= 0.1;
     }
 }
