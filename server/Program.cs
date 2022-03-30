@@ -182,25 +182,24 @@ class Server
 
         foreach (PlayerBlock pb in pbs)
         {
-            if (pb.y + pb.h == 900) pb.heart = 0;
+            if (pb.y <= 0 || pb.y + pb.h >= 900) pb.heart = 0;
         }
 
         PlayerGoDirection();
         AdjustPlayerPosition();
 
 
-
-        int playerCount = pbs.Count(pb => { return pb.heart > 0; });
-        if (gameStart && playerCount == 1)
+        int playerAliveCount = pbs.Count(pb => { return pb.heart > 0; });
+        if (gameStart && playerAliveCount == 1)
         {
             winner = pbs.Find(pb => { return pb.heart > 0; }).name;
         }
-        if (gameStart && playerCount == 0)
+        if (gameStart && playerAliveCount == 0)
         {
             Renew();
         }
 
-        if (gameStart && pfs.Count < 5 && ms % 1000 == 0)
+        if (gameStart && ms % 600 == 0)
         {
             pfs.Add(GeneratePlatform());
         }
