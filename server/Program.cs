@@ -153,7 +153,7 @@ class Server
 
         if (!gameStart)
         {
-            result += "Game Start in " + Convert.ToString((10000 - ms) / 1000) + '\n';
+            result += "Game Start in " + Convert.ToString((20000 - ms) / 1000) + '\n';
         }
         if (winner != String.Empty)
         {
@@ -168,7 +168,7 @@ class Server
         if (pbs.Count == 0) return;
 
         ms += tick;
-        if (!gameStart && ms > 10000)
+        if (!gameStart && ms > 20000)
         {
             gameStart = true;
             ms = 0;
