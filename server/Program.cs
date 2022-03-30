@@ -212,8 +212,17 @@ class Server
         int h = 10;
 
         Array types = Enum.GetValues(typeof(PlatformType));
-        PlatformType randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
+        PlatformType randomType;
 
+        if (pfs.Count(pf => pf.type == PlatformType.Norm) == 0)
+        {
+            randomType = PlatformType.Norm;
+        }
+        else
+        {
+            randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
+        }
+        
         return new PlatformBlock(x, y, w, h, randomType);
     }
     static public long GetCurrentTimeMS()
