@@ -165,8 +165,6 @@ class Server
 
     static public void NextTick()
     {
-        if (pbs.Count == 0) return;
-
         ms += tick;
         if (!gameStart && ms > 20000)
         {
@@ -180,21 +178,20 @@ class Server
         pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
         AdjustPlayerPosition();
 
+        PlayerGoDirection();
+        AdjustPlayerPosition();
+
         foreach (PlayerBlock pb in pbs)
         {
             if (pb.y <= 0 || pb.y + pb.h >= 900) pb.heart = 0;
         }
-
-        PlayerGoDirection();
-        AdjustPlayerPosition();
-
 
         int playerAliveCount = pbs.Count(pb => { return pb.heart > 0; });
         if (gameStart && playerAliveCount == 1)
         {
             winner = pbs.Find(pb => { return pb.heart > 0; }).name;
         }
-        if (pbs.Count == 0 || gameStart && playerAliveCount == 0)
+        if (pbs.Count == 0 || playerAliveCount == 0)
         {
             Renew();
         }
@@ -236,14 +233,14 @@ class Server
     {
         foreach (PlayerBlock pb in pbs)
         {
-            pb.y += 1;
+            pb.y += 1 + ms / 10000;
         }
     }
     static void PlatformUp()
     {
         foreach (PlatformBlock pf in pfs)
         {
-            pf.y -= 1;
+            pf.y -= 1 + ms / 10000;
         }
     }
     static void AdjustPlayerPosition()
