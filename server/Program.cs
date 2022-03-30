@@ -194,7 +194,7 @@ class Server
         {
             winner = pbs.Find(pb => { return pb.heart > 0; }).name;
         }
-        if (gameStart && playerAliveCount == 0)
+        if (pbs.Count == 0 || gameStart && playerAliveCount == 0)
         {
             Renew();
         }
