@@ -58,7 +58,7 @@ class Server
                 counter += 1;
                 TcpClient client = server.AcceptTcpClient();
 
-                StartClientThread(client, "Player " + Convert.ToString(counter));
+                StartClientThread(client, Convert.ToString(counter));
             }
         }
         catch (Exception ex)
@@ -136,6 +136,8 @@ class Server
         foreach (PlayerBlock pb in pbs)
         {
             pb.Revive();
+            pb.x = 300;
+            pb.y = 100;
         }
         pfs.Clear();
         pfs.Add(new PlatformBlock(200, 700, 200, 10, PlatformType.Norm));
@@ -306,7 +308,7 @@ public enum Direction
 
  public class PlayerBlock : Block
 {
-    public int heart;
+    public double heart;
     public string name;
     public Direction dir;
     public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h)
@@ -325,7 +327,7 @@ public enum Direction
 
     override public string ToString()
     {
-        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), heart, name);
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), Math.Floor(heart), name);
     }
 
     public void CalulateRelation(PlatformBlock pb)
@@ -337,7 +339,7 @@ public enum Direction
 
         if (pb.type == PlatformType.Spike && IsOn(pb))
         {
-            heart -= 1;
+            heart -= 0.1;
         }
     }
 
