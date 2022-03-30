@@ -173,28 +173,30 @@ class Server
             winner = String.Empty;
         }
 
+        PlayerDown();
+        if (gameStart) PlatformUp();
+        pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
+        AdjustPlayerPosition();
+
         foreach (PlayerBlock pb in pbs)
         {
-            pb.NextPosition();
-            foreach (PlatformBlock pf in pfs)
-            {
-                pb.CalulateRelation(pf);
-            }
+            if (pb.y + pb.h == 900) pb.heart = 0;
         }
 
-        foreach (PlatformBlock pf in pfs)
-        {
-            pf.NextPosition();
-        }
-        pfs.RemoveAll((PlatformBlock pf) => { return pf.y < 0; });
+        PlayerGoDirection();
+        AdjustPlayerPosition();
 
-        
+
+
         int playerCount = pbs.Count(pb => { return pb.heart > 0; });
         if (gameStart && playerCount == 1)
         {
             winner = pbs.Find(pb => { return pb.heart > 0; }).name;
         }
-
+        if (gameStart && playerCount == 0)
+        {
+            Renew();
+        }
 
         if (gameStart && pfs.Count < 5 && ms % 1000 == 0)
         {
@@ -218,6 +220,39 @@ class Server
     {
         return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
     }
+
+    static void PlayerDown()
+    {
+        foreach (PlayerBlock pb in pbs)
+        {
+            pb.y += 1;
+        }
+    }
+    static void PlatformUp()
+    {
+        foreach (PlatformBlock pf in pfs)
+        {
+            pf.y -= 1;
+        }
+    }
+    static void AdjustPlayerPosition()
+    {
+        foreach(PlayerBlock pb in pbs)
+        {
+            foreach (PlatformBlock pf in pfs)
+            {
+                pb.CalulateRelation(pf);
+            }
+        }
+    }
+    static void PlayerGoDirection()
+    {
+        foreach (PlayerBlock pb in pbs)
+        {
+            if (pb.dir == Direction.Left) pb.x -= 1;
+            if (pb.dir == Direction.Right) pb.x += 1;
+        }
+    }
 }
 
 abstract public class Block
@@ -235,7 +270,6 @@ abstract public class Block
         h = _h;
     }
     abstract override public string ToString();
-    abstract public void NextPosition();
     public bool DetectCollision(Block b)
     {
         if (x + w > b.x && x < b.x + b.w && y + h > b.y && y < b.y + b.h)
@@ -297,14 +331,6 @@ public enum Direction
             heart -= 1;
         }
     }
-    override public void NextPosition()
-    {
-        if (dir == Direction.Left) x -= 0.1;
-        if (dir == Direction.Right) x += 0.1;
-
-        y += 0.1;
-        if (y + h >= 900) heart = 0;
-    }
 
     public void Revive()
     {
@@ -328,10 +354,5 @@ public class PlatformBlock : Block
     override public string ToString()
     {
         return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type + 1);
-    }
-
-    override public void NextPosition()
-    {
-        y -= 0.1;
     }
 }
