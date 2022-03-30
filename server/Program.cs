@@ -207,10 +207,11 @@ class Server
     public static PlatformBlock GeneratePlatform()
     {
         var rand = new Random();
-        int x = rand.Next(100, 600);
-        int y = 1000;
-        int w = rand.Next(100, 200);
+        int w = rand.Next(100, 250);
         int h = 10;
+        int x = rand.Next(100, 501);
+        int y = 900;
+        
 
         Array types = Enum.GetValues(typeof(PlatformType));
         PlatformType randomType;
@@ -224,7 +225,7 @@ class Server
             randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
         }
         
-        return new PlatformBlock(x, y, w, h, randomType);
+        return new PlatformBlock(x - w / 2, y, w, h, randomType);
     }
     static public long GetCurrentTimeMS()
     {
