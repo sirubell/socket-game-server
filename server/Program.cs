@@ -129,10 +129,6 @@ class Server
         data = msg.ToString();
         return data != String.Empty;
     }
-    static string doSomething(string data)
-    {
-        return data.ToUpper();
-    }
 
     static void SendData(NetworkStream stream, string msg)
     {
