@@ -258,6 +258,8 @@ class Server
             {
                 pb.CalulateRelation(pf);
             }
+            if (pb.x + pb.w > 600) pb.x = pb.x + pb.w - 600;
+            if (pb.x < 0) pb.x = 600 - pb.w;
         }
     }
     static void CalculateDamage()
@@ -273,9 +275,9 @@ class Server
                     damaged = true;
                 }
             }
-            if (!damaged && pb.heart < 100)
+            if (!damaged && pb.heart < 100 && pb.heart > 0)
             {
-                pb.heart += 0.02;
+                pb.heart += 0.01;
             }
         }
     }
