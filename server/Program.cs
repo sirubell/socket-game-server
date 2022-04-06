@@ -10,6 +10,7 @@ class Server
     public const long tick = 5;
     static bool gameStart;
     static string winner = String.Empty;
+    static string currentEnvironment = String.Empty;
     public static void Main()
     {
         StartServer();
@@ -26,6 +27,7 @@ class Server
                 if (currentTime >= prevTime + tick)
                 {
                     prevTime = currentTime;
+                    currentEnvironment = GetEnvironmentString();
 
                     NextTick();
 
@@ -104,7 +106,7 @@ class Server
                     PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
                     player.ChangeDirection(msg);
 
-                    msg = name + "\n" + GetEnvironmentString();
+                    msg = name + "\n" + currentEnvironment;
                     // msg = msg.ToUpper();
 
                     bufferSend = Encoding.ASCII.GetBytes(msg);
