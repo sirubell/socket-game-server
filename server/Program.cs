@@ -6,6 +6,7 @@ class Server
     static public List<PlayerBlock> pbs = new List<PlayerBlock>();
     static public List<PlatformBlock> pfs = new List<PlatformBlock>();
     static long ms;
+    static int platformBlockCounter;
     public const long tick = 5;
     static bool gameStart;
     static string winner = String.Empty;
@@ -140,8 +141,9 @@ class Server
             pb.y = 100;
         }
         pfs.Clear();
-        pfs.Add(new PlatformBlock(200, 700, 200, 10, PlatformType.Norm));
+        pfs.Add(new PlatformBlock(200, 700, 200, 10, "1", PlatformType.Norm));
         ms = 0;
+        platformBlockCounter = 1;
         gameStart = false;
     }
     static public string GetEnvironmentString()
@@ -222,7 +224,7 @@ class Server
             randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
         }
         
-        return new PlatformBlock(x - w / 2, y, w, h, randomType);
+        return new PlatformBlock(x - w / 2, y, w, h, Convert.ToString(++platformBlockCounter), randomType);
     }
     static public long GetCurrentTimeMS()
     {
@@ -269,13 +271,15 @@ abstract public class Block
     public double y;
     public double w;
     public double h;
+    public string name;
 
-    public Block(double _x, double _y, double _w, double _h)
+    public Block(double _x, double _y, double _w, double _h, string _name)
     {
         x = _x;
         y = _y;
         w = _w;
         h = _h;
+        name = _name;
     }
     abstract override public string ToString();
     public bool DetectCollision(Block b)
@@ -306,12 +310,10 @@ public enum Direction
  public class PlayerBlock : Block
 {
     public double heart;
-    public string name;
     public Direction dir;
-    public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h)
+    public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h, _name)
     {
         heart = 100;
-        name = _name;
         dir = Direction.None;
     }
 
@@ -324,7 +326,7 @@ public enum Direction
 
     override public string ToString()
     {
-        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), Math.Floor(heart), name);
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), name, Math.Floor(heart));
     }
 
     public void CalulateRelation(PlatformBlock pb)
@@ -355,12 +357,12 @@ public enum PlatformType
 public class PlatformBlock : Block
 {
     public PlatformType type = PlatformType.Norm;
-    public PlatformBlock(double _x, double _y, double _w, double _h, PlatformType _type) : base(_x, _y, _w, _h)
+    public PlatformBlock(double _x, double _y, double _w, double _h, string _name, PlatformType _type) : base(_x, _y, _w, _h, _name)
     {
         type = _type;
     }
     override public string ToString()
     {
-        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), (int)type + 1);
+        return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), name, (int)type + 1);
     }
 }
