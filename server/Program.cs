@@ -215,18 +215,19 @@ class Server
         
 
         Array types = Enum.GetValues(typeof(PlatformType));
-        PlatformType randomType;
+        PlatformType type;
 
         if (pfs.Count(pf => pf.type == PlatformType.Norm) == 0)
         {
-            randomType = PlatformType.Norm;
+            type = PlatformType.Norm;
         }
         else
         {
-            randomType = (PlatformType)types.GetValue(rand.Next(types.Length));
+            int randomVal = rand.Next(10);
+            type = randomVal < 3 ? PlatformType.Spike : PlatformType.Norm;
         }
         
-        return new PlatformBlock(x - w / 2, y, w, h, Convert.ToString(++platformBlockCounter), randomType);
+        return new PlatformBlock(x - w / 2, y, w, h, Convert.ToString(++platformBlockCounter), type);
     }
     static public long GetCurrentTimeMS()
     {
@@ -237,14 +238,14 @@ class Server
     {
         foreach (PlayerBlock pb in pbs)
         {
-            pb.y += 1 + ms / 10000;
+            pb.y += 1 + 0.3 * (ms / 10000);
         }
     }
     static void PlatformUp()
     {
         foreach (PlatformBlock pf in pfs)
         {
-            pf.y -= 1 + ms / 10000;
+            pf.y -= 1 + 0.3 * (ms / 10000);
         }
     }
     static void AdjustPlayerPosition()
@@ -261,8 +262,8 @@ class Server
     {
         foreach (PlayerBlock pb in pbs)
         {
-            if (pb.dir == Direction.Left) pb.x -= 1;
-            if (pb.dir == Direction.Right) pb.x += 1;
+            if (pb.dir == Direction.Left) pb.x -= 1 + 0.3 * (ms / 10000);
+            if (pb.dir == Direction.Right) pb.x += 1 + 0.3 * (ms / 10000);
         }
     }
 }
