@@ -328,6 +328,8 @@ public enum Direction
 
     override public string ToString()
     {
+        if (heart <= 0) return String.Empty;
+
         return String.Join(',', Math.Floor(x), Math.Floor(y), Math.Floor(w), Math.Floor(h), name, Math.Floor(heart));
     }
 
