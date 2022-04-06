@@ -83,32 +83,22 @@ class Server
 
         try
         {
-            while (client.Connected)
+            NetworkStream stream = client.GetStream();
+            string receivedData = String.Empty;
+
+            while (ReceiveData(stream, out receivedData))
             {
-                NetworkStream stream = client.GetStream();
-                byte[] bufferRead = new byte[2048];
-                byte[] bufferSend = new byte[2048];
-                int bytesRead;
-                while ((bytesRead = stream.Read(bufferRead, 0, bufferRead.Length)) > 0)
-                {
+                Console.WriteLine($"Receive {receivedData} from client: {info}");
 
-                    string msg = Encoding.ASCII.GetString(bufferRead, 0, bytesRead);
-                    Console.WriteLine($"Receive {msg} from client: {info}");
+                PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
+                player.ChangeDirection(receivedData);
 
-                    PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
-                    player.ChangeDirection(msg);
+                string msg = name + "\n" + currentEnvironment;
 
-                    msg = name + "\n" + currentEnvironment;
-                    // msg = msg.ToUpper();
+                SendData(stream, msg);
+                Console.WriteLine($"Send {msg} to client: {info}");
 
-                    bufferSend = Encoding.ASCII.GetBytes(msg);
-
-                    stream.Write(bufferSend, 0, bufferSend.Length);
-                    Console.WriteLine($"Send {msg} to client: {info}");
-                }
-
-                stream.Flush();
-                stream.Close();
+                Console.WriteLine("if this message spam too much, it means the code has a bug somewhere.");
             }
 
         }
@@ -119,11 +109,35 @@ class Server
         finally
         {
             client.Close();
+            Console.WriteLine($"Client disconnected with {info}");
 
             pbs.RemoveAll((PlayerBlock pb) => { return pb.name == name; });
-
-            Console.WriteLine($"Client disconnected with {info}");
         }
+    }
+    static bool ReceiveData(NetworkStream stream, out string data)
+    {
+        byte[] buffer = new byte[8];
+        StringBuilder msg = new StringBuilder();
+        data = String.Empty;
+
+        do
+        {
+            Int32 bytes = stream.Read(buffer, 0, buffer.Length);
+            msg.Append(Encoding.ASCII.GetString(buffer, 0, bytes));
+        } while (stream.DataAvailable);
+
+        data = msg.ToString();
+        return data != String.Empty;
+    }
+    static string doSomething(string data)
+    {
+        return data.ToUpper();
+    }
+
+    static void SendData(NetworkStream stream, string msg)
+    {
+        byte[] buffer = Encoding.ASCII.GetBytes(msg);
+        stream.Write(buffer, 0, buffer.Length);
     }
 
     static public void Renew()
