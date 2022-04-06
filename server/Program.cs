@@ -39,7 +39,7 @@ class Server
 
     public static void StartServerThread()
     {
-        Int32 port = 12345;
+        Int32 port = 15070;
         int counter = 0;
         IPAddress localAddr = IPAddress.Parse("127.0.0.1");
         TcpListener server = new TcpListener(localAddr, port);
