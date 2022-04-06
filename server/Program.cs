@@ -79,7 +79,7 @@ class Server
         string info = $"IP: {clientIp}, name: {name}";
         Console.WriteLine($"Client connected with {info}");
 
-        pbs.Add(new PlayerBlock(300, 100, 50, 50, name));
+        pbs.Add(new PlayerBlock(300, 100, 50, 50, name, gameStart == true ? 0 : 100));
 
         try
         {
@@ -141,8 +141,6 @@ class Server
         foreach (PlayerBlock pb in pbs)
         {
             pb.Revive();
-            pb.x = 300;
-            pb.y = 100;
         }
         pfs.Clear();
         pfs.Add(new PlatformBlock(200, 700, 200, 10, "1", PlatformType.Norm));
@@ -315,9 +313,9 @@ public enum Direction
 {
     public double heart;
     public Direction dir;
-    public PlayerBlock(double _x, double _y, double _w, int _h, string _name) : base(_x, _y, _w, _h, _name)
+    public PlayerBlock(double _x, double _y, double _w, int _h, string _name, int _heart) : base(_x, _y, _w, _h, _name)
     {
-        heart = 100;
+        heart = _heart;
         dir = Direction.None;
     }
 
@@ -351,6 +349,8 @@ public enum Direction
     public void Revive()
     {
         heart = 100;
+        x = 300;
+        y = 100;
     }
 }
 
