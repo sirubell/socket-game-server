@@ -14,26 +14,18 @@ class Server
     public static void Main()
     {
         StartServer();
+        Renew();
 
+        long prevTime = GetCurrentTimeMS();
         while (true)
         {
-            Renew();
-
-            long prevTime = GetCurrentTimeMS();
-
-            while (true)
+            long currentTime = GetCurrentTimeMS();
+            if (currentTime >= prevTime + tick)
             {
-                long currentTime = GetCurrentTimeMS();
-                if (currentTime >= prevTime + tick)
-                {
-                    prevTime = currentTime;
-                    currentEnvironment = GetEnvironmentString();
+                prevTime = currentTime;
+                currentEnvironment = GetEnvironmentString();
 
-                    NextTick();
-
-                    // Console.WriteLine(GetEnvironmentString());
-                }
-
+                NextTick();
             }
         }
     }
