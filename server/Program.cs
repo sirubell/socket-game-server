@@ -185,6 +185,8 @@ class Server
         PlayerGoDirection();
         AdjustPlayerPosition();
 
+        CalculateDamage();
+
         foreach (PlayerBlock pb in pbs)
         {
             if (pb.y <= 0 || pb.y + pb.h >= 900) pb.heart = 0;
@@ -258,6 +260,26 @@ class Server
             }
         }
     }
+    static void CalculateDamage()
+    {
+        foreach (PlayerBlock pb in pbs)
+        {
+            bool damaged = false;
+            foreach (PlatformBlock pf in pfs)
+            {
+                if (pf.type == PlatformType.Spike && pb.IsOn(pf))
+                {
+                    pb.heart -= 0.1;
+                    damaged = true;
+                }
+            }
+            if (!damaged && pb.heart < 100)
+            {
+                pb.heart += 0.02;
+            }
+        }
+    }
+
     static void PlayerGoDirection()
     {
         foreach (PlayerBlock pb in pbs)
@@ -340,11 +362,6 @@ public enum Direction
         if (DetectCollision(pb) && y > pb.y && y < pb.y + pb.h) y = pb.y + pb.h;
         if (DetectCollision(pb) && x < pb.x && x + w > pb.x) x = pb.x - w;
         if (DetectCollision(pb) && x > pb.x && x < pb.x + pb.w) x = pb.x + pb.w;
-
-        if (pb.type == PlatformType.Spike && IsOn(pb))
-        {
-            heart -= 0.1;
-        }
     }
 
     public void Revive()
