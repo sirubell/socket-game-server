@@ -88,7 +88,7 @@ class Server
 
             while (ReceiveData(stream, out receivedData))
             {
-                Console.WriteLine($"Receive {receivedData} from client: {info}");
+                //Console.WriteLine($"Receive {receivedData} from client: {info}");
 
                 PlayerBlock player = pbs.Find((PlayerBlock pb) => { return pb.name == name; });
                 player.ChangeDirection(receivedData);
@@ -96,9 +96,9 @@ class Server
                 string msg = name + "\n" + currentEnvironment;
 
                 SendData(stream, msg);
-                Console.WriteLine($"Send {msg} to client: {info}");
+                //Console.WriteLine($"Send {msg} to client: {info}");
 
-                Console.WriteLine("if this message spam too much, it means the code has a bug somewhere.");
+                //Console.WriteLine("if this message spam too much, it means the code has a bug somewhere.");
             }
 
         }
